@@ -1,5 +1,11 @@
 .vscode
 artifacts
+paper/_minted-README
+paper/README.fdb*
+paper/README.fls
+paper/README.out
+paper/README.synctex*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -177,3 +183,4 @@ decoder.pth
 dev.ipynb
 Machine-Learning based Encryption Algorithms.ipynb
 encoder.pth
+paper/README.aux

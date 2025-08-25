@@ -58,14 +58,12 @@ class CipherTrainer:
             self.history.append({"epoch": epoch, "enc_train_loss": enc_tr, "enc_eval_loss": enc_ev,
                                  "enc_acc": enc_acc, "dec_train_loss": dec_tr, "dec_eval_loss": dec_ev,
                                  "dec_acc": dec_acc})
-            print(f"Epoch {epoch:03d} | enc train {enc_tr:.4f} eval {enc_ev:.4f} acc {enc_acc:.3f} | "
-                  f"dec train {dec_tr:.4f} eval {dec_ev:.4f} acc {dec_acc:.3f}")
             improved = False
             if enc_acc > self.best_enc: torch.save(self.encoder.state_dict(), self.outdir / "encoder_best.pth"); self.best_enc = enc_acc; improved = True
             if dec_acc > self.best_dec: torch.save(self.decoder.state_dict(), self.outdir / "decoder_best.pth"); self.best_dec = dec_acc; improved = True
             if improved: self._save_vocab_and_mapping()
             if enc_acc >= self.cfg.target_acc and dec_acc >= self.cfg.target_acc:
-                self._finalize(); print("✅ Both encoder and decoder reached target accuracy. Done."); return
+                self._finalize(); return
         self._finalize()
 
     def _train_one(self, model: nn.Module, loader: data.DataLoader, opt: torch.optim.Optimizer) -> float:
