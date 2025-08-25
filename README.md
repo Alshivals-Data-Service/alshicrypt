@@ -51,7 +51,7 @@ The technical write-up for this project is in **[`paper/README.pdf`](paper/READM
 
 * **Vocabulary**: `Characters` concatenates ASCII letters, digits, punctuation, and whitespace into a fixed set $V$.
 * **Key (cipher)**: `Cipher` samples a **random permutation** $\pi$ over $V$ and forms supervised pairs for both directions:
-  $\mathcal{D}_{enc}=\{(x,\pi(x))\}$, $\mathcal{D}_{dec}=\{(\pi(x),x)\}$.
+  $$\mathcal{D}_{enc}=\{(x,\pi(x))\},$$ $$\mathcal{D}_{dec}=\{(\pi(x),x)\}.$$
 * **Model**: `Architecture` is a compact per-character classifier (Embedding $\rightarrow$ Linear) that outputs logits over $V$.
 * **Objective**: Categorical cross-entropy; the task is multi-class classification over characters.
 * **Training**: Two models are trained—an encoder (plaintext→ciphertext) and a decoder (ciphertext→plaintext)—until near-perfect accuracy on $V$.
