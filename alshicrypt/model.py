@@ -6,6 +6,6 @@ class Architecture(nn.Module):
         super().__init__()
         self.emb = nn.Embedding(num_chars, emb_dim)
         self.out = nn.Linear(emb_dim, num_chars)
-    def forward(self, x):  # x: [B]
-        e = self.emb(x)    # [B, E]
-        return self.out(e) # [B, V]
+    def forward(self, x):          # x: [B]
+        e = self.emb(x)            # [B, E]
+        return self.out(e)         # [B, V]
