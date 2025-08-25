@@ -1,7 +1,7 @@
 \documentclass[12pt]{article}
 
 % Packages
-\usepackage{amsmath, amssymb}
+\usepackage{amsmath, amssymb, amsthm}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{subcaption}
@@ -9,6 +9,13 @@
 \usepackage{geometry}
 \usepackage{minted}   % requires: pdflatex -shell-escape
 \geometry{margin=1in}
+
+% Theorem environments
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}            % numbered Propositions
+
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}                      % numbered Remarks
 
 \title{Machine-Learning Based Encryption via Learned Character Permutations}
 \author{Samuel Cavazos}
@@ -44,7 +51,48 @@ For each direction we use the same per-character classifier. Given input index $
 with parameters $E\in\mathbb{R}^{n\times d}$, $W\in\mathbb{R}^{n\times d}$, $b\in\mathbb{R}^{n}$. The prediction is $\hat{y}=\arg\max_y p(y\,|\,x)$.
 
 \paragraph{Expressivity (exact realization).}
-\textbf{Proposition.} If $d\ge n$, there exist parameters $(E,W,b)$ such that $\arg\max \mathrm{softmax}(W E^\top e_x + b) = \pi(x)$ for all $x$. In particular, choose $E=I_n$, $b=0$, and $W=P_\pi$, the permutation matrix corresponding to $\pi$ (i.e., $(P_\pi)_{y,x}=1$ iff $y=\pi(x)$). Then $W E^\top e_x = P_\pi e_x = e_{\pi(x)}$, and the softmax is maximized uniquely at class $\pi(x)$.
+\begin{proposition}[Exact realizability via rank factorization]
+Let $V$ be a vocabulary with $|V|=n$ and let $\pi\in S_n$ be a permutation.
+Consider the model $x\mapsto \mathrm{softmax}(W E^\top e_x + b)$ with
+$E\in\mathbb{R}^{n\times d}$, $W\in\mathbb{R}^{n\times d}$, $b\in\mathbb{R}^n$.
+If $d\ge n$, then there exist parameters $(E,W,b)$ such that
+\[
+\arg\max_y \ \mathrm{softmax}(W E^\top e_x + b)_y \;=\; \pi(x)
+\quad\text{for all } x\in\{0,\dots,n-1\}.
+\]
+\end{proposition}
+
+\begin{proof}[Constructive proof]
+Let $P_\pi\in\mathbb{R}^{n\times n}$ be the permutation matrix for $\pi$
+(i.e., $(P_\pi)_{y,x}=1$ iff $y=\pi(x)$).
+Pick $E=[I_n\ \ 0]\in\mathbb{R}^{n\times d}$ (so $E^\top=[I_n; 0]$),
+$W=[P_\pi\ \ 0]\in\mathbb{R}^{n\times d}$, and $b=0$.
+Then for any input index $x$,
+\[
+h = E^\top e_x = \begin{bmatrix} I_n \\ 0 \end{bmatrix} e_x = e_x,
+\qquad
+z = W h = \begin{bmatrix} P_\pi & 0 \end{bmatrix} e_x = P_\pi e_x = e_{\pi(x)}.
+\]
+Hence $\mathrm{softmax}(z)$ is maximized uniquely at class $\pi(x)$, as required.
+\end{proof}
+
+\begin{remark}[Minimality for exact realization]\label{rem:minimality}
+If one requires the \emph{exact} linear realization $WE^\top = P_\pi$ (so that
+$z = WE^\top e_x$ equals $e_{\pi(x)}$ before softmax), then necessarily $d\ge n$.
+Indeed, $\mathrm{rank}(P_\pi)=n$ while
+$\mathrm{rank}(WE^\top)\le \min\{\mathrm{rank}(W),\mathrm{rank}(E)\}\le d$.
+Thus $d\ge n$ is both sufficient (by the construction above) and necessary for
+exact equality $WE^\top=P_\pi$.
+This is an instance of the \emph{rank (full-rank) factorization} theorem.\footnote{See, e.g.,
+R.~A.~Horn and C.~R.~Johnson, \emph{Matrix Analysis} (2nd ed.), Cambridge Univ. Press,
+or G.~H.~Golub and C.~F.~Van Loan, \emph{Matrix Computations} (4th ed.), Johns Hopkins Univ. Press.}
+\end{remark}
+
+\begin{remark}[On the weaker argmax requirement]
+Our practical objective only requires $z_{\pi(x)} > z_y$ for all $y\neq \pi(x)$, not $z=e_{\pi(x)}$.
+Therefore, in practice one often achieves perfect classification with $d\ll n$; the construction
+and Remark~\ref{rem:minimality} address \emph{exact} linear realization.
+\end{remark}
 
 This guarantees that a shallow embedding+linear model can perfectly implement any substitution cipher when $d\!\ge\!n$; in practice we use $d\ll n$ and still find the mapping by optimization.
 
@@ -134,7 +182,7 @@ dec_ds = data.TensorDataset(cipher.dec_pairs[:,0], cipher.dec_pairs[:,1])
 enc_loader = data.DataLoader(enc_ds, batch_size=32, shuffle=True)
 dec_loader = data.DataLoader(dec_ds, batch_size=32, shuffle=True)
 
-@torch.no_grad()
+@torch.no_grad__()
 def eval_mapper(model, pairs):
     x, y = pairs[:,0], pairs[:,1]
     logits = model(x)
@@ -229,7 +277,7 @@ The full source code for this project is available at:
 
 \paragraph{Install (from GitHub).}
 Requires Python 3.9+ and PyTorch 2.0+.
-\begin{minted}[fontsize=\footnotesize]{bash}
+\begin{minted}[fontsize=\footnotesize, frame=single]{bash}
 pip install "git+https://github.com/Alshivals-Data-Service/alshicrypt.git"
 # (If PyTorch is missing, install a wheel appropriate for your system first:
 # https://pytorch.org/get-started/locally/)
@@ -267,7 +315,7 @@ print(f"Decoded:  {dec2}")
 assert dec2 == msg
 \end{minted}
 
-\begin{minted}[fontsize=\footnotesize]{text}
+\begin{minted}[fontsize=\footnotesize, frame=single]{text}
 crypt1
 ============================
 Original: Hello, World!
